@@ -9,8 +9,8 @@ const con = mysql.createConnection({
 });
 
 function addTransaction(amount,desc){
-    var mysql = `INSERT INTO \`transactions\` (\`amount\`, \`description\`) VALUES ('${amount}','${desc}')`;
-    con.query(mysql, function(err,result){
+    var sql = "INSERT INTO `transactions` (`amount`, `description`) VALUES (?,?)";
+    con.query(sql, [amount, desc], function(err,result){
         if (err) throw err;
         console.log("Adding to the table should have worked");
     }) 
@@ -27,8 +27,8 @@ function getAllTransactions(callback){
 }
 
 function findTransactionById(id,callback){
-    var mysql = `SELECT * FROM transactions WHERE id = ${id}`;
-    con.query(mysql, function(err,result){
+    var sql = "SELECT * FROM transactions WHERE id = ?";
+    con.query(sql, [id], function(err,result){
         if (err) throw err;
         console.log(`retrieving transactions with id ${id}`);
         return(callback(result));
@@ -45,8 +45,8 @@ function deleteAllTransactions(callback){
 }
 
 function deleteTransactionById(id, callback){
-    var mysql = `DELETE FROM transactions WHERE id = ${id}`;
-    con.query(mysql, function(err,result){
+    var sql = "DELETE FROM transactions WHERE id = ?";
+    con.query(sql, [id], function(err,result){
         if (err) throw err;
         console.log(`Deleting transactions with id ${id}`);
         return(callback(result));
@@ -54,7 +54,7 @@ function deleteTransactionById(id, callback){
 }
 
 
-module.exports = {addTransaction ,getAllTransactions, deleteAllTransactions, deleteAllTransactions, findTransactionById, deleteTransactionById};
+module.exports = {addTransaction ,getAllTransactions, deleteAllTransactions, findTransactionById, deleteTransactionById};
 
 
 
