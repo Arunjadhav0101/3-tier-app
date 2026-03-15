@@ -11,7 +11,7 @@ resource "aws_rds_cluster" "aurora" {
   cluster_identifier      = "${var.project_name}-aurora-cluster"
   engine                  = "aurora-mysql"
   engine_version          = "5.7.mysql_aurora.2.11.2"
-  availability_zones      = data.aws_availability_zones.available.names
+  availability_zones      = slice(data.aws_availability_zones.available.names, 0, 2)
   database_name           = var.db_name
   master_username         = var.db_user
   master_password         = var.db_password

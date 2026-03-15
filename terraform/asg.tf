@@ -14,6 +14,10 @@ resource "aws_launch_template" "web_lt" {
   image_id      = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
 
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
+
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.web_tier_sg.id]
@@ -22,6 +26,10 @@ resource "aws_launch_template" "web_lt" {
   user_data = base64encode(<<-EOF
               #!/bin/bash
               sudo amazon-linux-extras install nginx1 -y
+              aws s3 cp s3://${aws_s3_bucket.app_code.id}/web-tier-build.zip /tmp/web-tier-build.zip
+              unzip /tmp/web-tier-build.zip -d /home/ec2-user/web-tier/build
+              # Move nginx.conf and restart
+              aws s3 cp s3://${aws_s3_bucket.app_code.id}/nginx.conf /etc/nginx/nginx.conf
               sudo systemctl start nginx
               sudo systemctl enable nginx
               EOF
@@ -49,6 +57,10 @@ resource "aws_launch_template" "app_lt" {
   image_id      = data.aws_ami.amazon_linux_2.id
   instance_type = var.instance_type
 
+  iam_instance_profile {
+    name = aws_iam_instance_profile.ec2_profile.name
+  }
+
   network_interfaces {
     associate_public_ip_address = false
     security_groups             = [aws_security_group.app_tier_sg.id]
@@ -58,6 +70,12 @@ resource "aws_launch_template" "app_lt" {
               #!/bin/bash
               curl -sL https://rpm.nodesource.com/setup_16.x | sudo bash -
               sudo yum install -y nodejs
+              mkdir -p /home/ec2-user/app-tier
+              aws s3 cp s3://${aws_s3_bucket.app_code.id}/app-tier.zip /tmp/app-tier.zip
+              unzip /tmp/app-tier.zip -d /home/ec2-user/app-tier
+              cd /home/ec2-user/app-tier
+              npm install
+              node index.js
               EOF
   )
 }
